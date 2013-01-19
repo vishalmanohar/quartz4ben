@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<setup
+        xmlns="http://databene.org/benerator/0.7.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://databene.org/benerator/0.7.0 http://databene.org/benerator-0.7.0.xsd">
+
+    <import platforms = "db"/>
+
+    <comment>setting default values</comment>
+    <setting name="stage" default="development" />
+    <setting name="database" default="postgres" />
+    <setting name="dbCatalog"  default="motechquartz" />
+    <setting name="dbSchema"   default="motechquartz" />
+    <setting name="dbPassword" default="p@ssw0rd" />
+    <setting name="dbBatch"    default="false" />
+    <setting name="count"    default="5" />
+    <setting name="jobSubject"    default="subject" />
+    <setting name="jobName"    default="name5" />
+    <setting name="jobClassName"    default="org.quartz4ben.job.TestJob" />
+
+    <include uri="{ftl:quartz.ben.properties}" /> <!-- ftl: is the prefix used for scripting with FreeMarker Template Language -->
+
+    <database id="db" url="{dbUrl}" driver="{dbDriver}" catalog="{dbCatalog}" schema="{dbSchema}"
+              user="{dbUser}" password="{dbPassword}" batch="{dbBatch}" />
+
+    <!--<bean id="idGen" spec="new IncrementGenerator(1000)" />-->
+
+    <generate type="qrtz_job_details" count="{count}" consumer="db">
+        <attribute name="SCHED_NAME"  type='string' constant="schedulerFactoryBean" />
+        <attribute name="JOB_NAME"  type='string' script="{jobSubject + jobName}" converter="UniqueStringConverter" />
+        <attribute name="JOB_GROUP"  type='string' constant="default"/>
+        <attribute name="DESCRIPTION" nullable="true"/>
+        <attribute name="JOB_CLASS_NAME"  type='string' script="{jobClassName}"/>
+        <attribute name="IS_DURABLE"  type='boolean' constant="false"/>
+        <attribute name="IS_NONCONCURRENT"  type='boolean' constant="false"/>
+        <attribute name="IS_UPDATE_DATA"  type='boolean' constant="false"/>
+        <attribute name="JOB_DATA"  type='binary' constant="'test'" converter="org.quartz4ben.converter.JobDataConverter"/>
+
+        <generate type="qrtz_triggers" count="1" consumer="db">
+            <attribute name="SCHED_NAME"  type='string' constant="schedulerFactoryBean" />
+            <attribute name="TRIGGER_NAME"  type='string' script="qrtz_job_details.JOB_NAME" converter="UniqueStringConverter" />
+            <attribute name="TRIGGER_GROUP"  type='string' constant="default"/>
+            <attribute name="JOB_NAME"  type='string' script="qrtz_job_details.JOB_NAME" converter="UniqueStringConverter" />
+            <attribute name="JOB_GROUP"  type='string' constant="default"/>
+            <attribute name="DESCRIPTION"  nullable="true"/>
+            <attribute name="NEXT_FIRE_TIME"  type='int' constant="1358610774"/>
+            <attribute name="PREV_FIRE_TIME"  type='int' constant="-1"/>
+            <attribute name="PRIORITY"  type='int' constant="5"/>
+            <attribute name="TRIGGER_STATE"  type='string' constant="WAITING"/>
+            <attribute name="TRIGGER_TYPE"  type='string' constant="CRON"/>
+            <attribute name="START_TIME"  type='int' constant="1358610774"/>
+            <attribute name="END_TIME"  type='int' constant="0"/>
+            <attribute name="CALENDAR_NAME" nullable="true"/>
+            <attribute name="MISFIRE_INSTR" type='int' constant="0"/>
+            <attribute name="JOB_DATA" type='binary' script="qrtz_job_details.JOB_DATA"/>
+
+            <generate type="qrtz_cron_triggers" count="1" consumer="db">
+                <attribute name="SCHED_NAME"  type='string' constant="schedulerFactoryBean" />
+                <attribute name="TRIGGER_NAME"  type='string' script="qrtz_job_details.JOB_NAME" converter="UniqueStringConverter" />
+                <attribute name="TRIGGER_GROUP"  type='string' constant="default"/>
+                <attribute name="CRON_EXPRESSION"  type='string' constant="0 30 15 ? * SAT"/>
+                <attribute name="TIME_ZONE_ID"  type='string' constant="Asia/Kolkata"/>
+            </generate>
+        </generate>
+    </generate>
+</setup>
